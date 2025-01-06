@@ -1,0 +1,37 @@
+<?php
+// Set backup directory and file name
+$backup_dir = __DIR__ . '/backups/';
+if (!file_exists($backup_dir)) {
+    mkdir($backup_dir, 0755, true);
+}
+$backup_file = $backup_dir . 'wordpress-backup-' . date('Y-m-d-H-i-s') . '.zip';
+
+// Function to back up the database
+function backup_database($backup_dir) {
+    global $wpdb;
+
+    // Database credentials (replace if necessary)
+    $db_name = DB_NAME;
+    $db_user = DB_USER;
+    $db_password = DB_PASSWORD;
+    $db_host = DB_HOST;
+
+    // Database dump file
+    $db_backup_file = $backup_dir . 'database-backup-' . date('Y-m-d-H-i-s') . '.sql';
+
+    // Command to dump the database
+    $command = sprintf(
+        'mysqldump --user=%s --password=%s --host=%s %s > %s',
+        escapeshellarg($db_user),
+        escapeshellarg($db_password),
+        escapeshellarg($db_host),
+        escapeshellarg($db_name),
+        escapeshellarg($db_backup_file)
+    );
+
+    // Execute the command
+    system($command, $output);
+
+    // Return database dump file path
+    return $db_backup_file;
+}
