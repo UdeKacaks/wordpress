@@ -1,0 +1,42 @@
+<?php
+
+// Include WordPress core functionalities
+require_once('wp-load.php');
+
+// Check if a user is logged in
+if (!is_user_logged_in()) {
+    wp_die('Access denied. You must be logged in to access this page.');
+}
+
+// Get the current user
+$current_user = wp_get_current_user();
+
+// Check if the current user has the required capability (e.g., 'edit_posts')
+if (!current_user_can('edit_posts')) {
+    wp_die('Access denied. You do not have permission to edit posts.');
+}
+
+// Securely process the request
+if (isset($_GET['post_id']) && isset($_POST['content'])) {
+    $post_id = intval($_GET['post_id']); // Sanitize post ID
+    $content = sanitize_text_field($_POST['content']); // Sanitize content
+
+    // Check if the user is the author of the post or has the 'edit_others_posts' capability
+    $post = get_post($post_id);
+
+    if ($post->post_author != $current_user->ID && !current_user_can('edit_others_posts')) {
+        wp_die('Access denied. You can only edit your own posts.');
+    }
+
+    // Update the post content
+    $updated_post = [
+        'ID' => $post_id,
+        'post_content' => $content,
+    ];
+
+    wp_update_post($updated_post);
+    echo "Post updated successfully.";
+} else {
+    wp_die('Invalid request.');
+}
+?>
