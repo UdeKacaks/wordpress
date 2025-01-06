@@ -1,0 +1,46 @@
+<?php
+
+// Check if 'id' parameter is set in the URL
+if (isset($_GET['id'])) {
+    // Sanitize the input
+    $id = intval($_GET['id']); // Cast input to an integer to prevent SQL Injection
+
+    // Include WordPress configuration for database connection
+    require_once('wp-config.php');
+
+    // Connect to the WordPress database using mysqli
+    $connection = new mysqli(DB_HOST, DB_USER, DB_PASSWORD, DB_NAME);
+
+    // Check for database connection errors
+    if ($connection->connect_error) {
+        die("Connection failed: " . $connection->connect_error);
+    }
+
+    // Use prepared statements to safely handle user input
+    $stmt = $connection->prepare("SELECT user_login, user_email FROM wp_users WHERE ID = ?");
+    $stmt->bind_param("i", $id); // Bind the input parameter as an integer
+
+    // Execute the prepared statement
+    $stmt->execute();
+
+    // Get the result of the query
+    $result = $stmt->get_result();
+
+    // Check if any rows were returned
+    if ($result->num_rows > 0) {
+        // Output user data safely
+        while ($row = $result->fetch_assoc()) {
+            echo "User: " . htmlspecialchars($row['user_login']) . "<br>";
+            echo "Email: " . htmlspecialchars($row['user_email']) . "<br>";
+        }
+    } else {
+        echo "No results found.";
+    }
+
+    // Close the statement and database connection
+    $stmt->close();
+    $connection->close();
+} else {
+    echo "Invalid request. No ID parameter provided.";
+}
+?>
