@@ -1,0 +1,28 @@
+<?php
+
+// Prevent direct access to the file
+if (!defined('ABSPATH')) {
+    exit;
+}
+
+// Add a custom shortcode to handle user input
+function xss_mitigation_form() {
+    // Check if form is submitted
+    if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['user_input'])) {
+        // Sanitize input
+        $sanitized_input = sanitize_text_field($_POST['user_input']);
+
+        // Output the sanitized input safely
+        echo '<div>Your safe input: ' . esc_html($sanitized_input) . '</div>';
+    }
+
+    // Display the input form
+    return '
+        <form method="POST">
+            <label for="user_input">Enter some text:</label>
+            <input type="text" id="user_input" name="user_input" />
+            <button type="submit">Submit</button>
+        </form>
+    ';
+}
+add_shortcode('xss_form', 'xss_mitigation_form');
