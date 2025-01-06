@@ -1,0 +1,32 @@
+<?php
+// Add this to a custom plugin or run it temporarily using a plugin like "Code Snippets"
+
+// This function will uninstall plugins that are installed but not active
+function auto_uninstall_unused_plugins() {
+    // Check if the current user has administrator privileges
+    if (!current_user_can('manage_options')) {
+        return;
+    }
+
+    // Get all installed plugins
+    $all_plugins = get_plugins();
+    // Get all active plugins
+    $active_plugins = get_option('active_plugins', []);
+
+    // Loop through all installed plugins
+    foreach ($all_plugins as $plugin_file => $plugin_data) {
+        // If the plugin is not active, uninstall it
+        if (!in_array($plugin_file, $active_plugins)) {
+            // Deactivate the plugin (in case it's not deactivated properly)
+            deactivate_plugins($plugin_file);
+            // Delete the plugin files
+            delete_plugins([$plugin_file]);
+
+            // Optional: Log or notify about the uninstalled plugin
+            error_log("Uninstalled plugin: " . $plugin_data['Name']);
+        }
+    }
+}
+
+// Hook this function to an admin page load for testing or as a scheduled task
+add_action('admin_init', 'auto_uninstall_unused_plugins');
